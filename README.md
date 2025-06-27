@@ -1,53 +1,108 @@
-# Getting Started with Create React App
+# 💰 Vermögensrechner - Advanced Wealth Calculator
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Ein moderner, React-basierter Finanzrechner mit Apple-inspiriertem Design zur Prognose Ihrer finanziellen Zukunft.
 
-## Available Scripts
+![App Screenshot](https://via.placeholder.com/800x400/1a1a1a/ffffff?text=Vermögensrechner+Preview)
 
-In the project directory, you can run:
+## 🚀 Features
+
+### 📊 Dual-Mode Calculator
+- **Ansparphase**: Berechnung vom aktuellen Alter bis zur Rente
+- **Ruhestand**: Bereits im Ruhestand befindliche Personen
+
+### 🎯 Flexible Zielplanung
+- Individuelles Renteneintrittsalter (mit roter Linie im Chart)
+- Gewünschtes monatliches Einkommen im Ruhestand
+- Erwartete staatliche Rente
+- 4%-Regel für nachhaltige Entnahmeraten
+
+### 🏠 Optionale Erbschaft
+- Toggle-basierte Aktivierung
+- Nur bei Aktivierung in Berechnungen einbezogen
+- Visuelle Markierung im Chart (blaue gestrichelte Linie)
+
+### 📈 Erweiterte Visualisierung
+- Interaktive Charts mit Chart.js
+- Vermögensentwicklung (nominal + kaufkraftbereinigt)
+- Annotationen für Renteneintritt und Erbschaft
+- Responsive Design für alle Bildschirmgrößen
+
+### 🧮 Deutsche Steuerberechnung
+- Einkommensteuer nach aktuellen Tarifen
+- Solidaritätszuschlag
+- Sozialversicherungsbeiträge
+- Kapitalertragsteuer mit €1.000 Freibetrag
+
+## 🎨 Apple-Inspired Design
+
+- **Dark Theme** mit Glassmorphismus-Effekten
+- **Apple-Style Sliders** für alle Prozent-Eingaben
+- **Elegante Toggle-Switches** mit smooth Animations
+- **SF Pro Display** Schriftart (falls verfügbar)
+- **Apple Farbpalette** (SF Blue, Orange, Purple, etc.)
+
+## 🛠️ Tech Stack
+
+- **React** - Frontend Framework
+- **Tailwind CSS** - Utility-first CSS Framework
+- **Chart.js** - Charting Library mit Annotations
+- **React Hot Reload** - Live Development Updates
+
+## 🚀 Quick Start
+
+```bash
+# Dependencies installieren
+npm install
+
+# Development Server starten
+npm start
+
+# Production Build erstellen
+npm run build
+```
+
+Die App läuft dann auf `http://localhost:3000`
+
+## 📱 Usage
+
+1. **Modus wählen**: Ansparphase oder Ruhestand
+2. **Grunddaten eingeben**: Alter, Einkommen, Ausgaben
+3. **Ziele definieren**: Renteneintrittsalter, gewünschtes Einkommen
+4. **Optionen aktivieren**: Erbschaft, Rente
+5. **Ergebnisse analysieren**: Chart, Tabellen, Zielerreichung
+
+## 📊 Chart Features
+
+- **Blaue Linie**: Vermögen nominal
+- **Orange gestrichelt**: Vermögen kaufkraftbereinigt  
+- **🔴 Rote Linie**: Renteneintritt
+- **🔵 Blaue gestrichelt**: Erbschaft (wenn aktiviert)
+- **Interaktive Tooltips** mit deutschen Währungsformatierung
+
+## 🎯 Status Indicators
+
+Die App zeigt aktive Parameter als farbkodierte Badges:
+- 🔴 **Renteneintritt** - Jahr und Alter
+- 🔵 **Erbschaft** - Jahr und Betrag (wenn aktiviert)
+- 🟢 **Rentenziel** - Gewünschtes Einkommen
+- 🟠 **Staatliche Rente** - Erwartete Bezüge
+
+## ⚠️ Disclaimer
+
+Dies ist eine vereinfachte Modellrechnung für Planungszwecke. Für detaillierte Finanzplanung konsultieren Sie einen Finanzberater.
+
+---
+
+## Available Scripts (Create React App)
 
 ### `npm start`
-
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
-
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+Runs the app in development mode. Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 
 ### `npm test`
-
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Launches the test runner in interactive watch mode.
 
 ### `npm run build`
-
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+Builds the app for production to the `build` folder.
 
 ### Analyzing the Bundle Size
 
