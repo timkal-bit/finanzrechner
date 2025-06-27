@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interaktiver Finanzrechner</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Midnight Slate -->
+    <!-- Application Structure Plan: A single-page application built in one HTML file. The layout is designed for clarity and ease of use. A static header contains all user-input parameters. The main content area below is scrollable and contains a dynamic chart for visual analysis, followed by two distinct, clearly labeled tables for the accumulation and decumulation (retirement) phases. This structure was chosen to separate the core user controls from the detailed results, allowing users to tweak parameters and immediately see the impact on the chart and tables without losing context. The flow is intuitive: set your data, see the visual summary, then explore the year-by-year details. -->
+    <!-- Visualization & Content Choices: 1. User Inputs -> Goal: Data Entry -> Presentation: Grouped input fields in a card -> Interaction: Real-time updates on input change -> Justification: Keeps controls accessible and provides immediate feedback. Method: HTML forms, JS event listeners. 2. Wealth Growth -> Goal: Compare nominal vs. real wealth over time -> Viz: Interactive Line Chart -> Interaction: Hover for tooltips with detailed values -> Justification: Line charts are ideal for showing trends over a long period. Comparing nominal and real wealth on the same chart highlights the impact of inflation effectively. Library: Chart.js. 3. Detailed Projections -> Goal: Organize and present detailed yearly data -> Presentation: Two separate HTML tables (Accumulation & Retirement) -> Interaction: Tables are dynamically re-rendered on input change -> Justification: Tables provide precise, granular data that charts cannot. Separating the two phases makes the data less overwhelming and easier to understand. Method: Vanilla JS DOM manipulation. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #111827; /* gray-900 */
+        }
+        .chart-container {
+            position: relative;
+            height: 400px;
+            width: 100%;
+        }
+        /* Custom scrollbar for tables on small screens */
+        .table-container::-webkit-scrollbar {
+            height: 8px;
+        }
+        .table-container::-webkit-scrollbar-track {
+            background: #374151; /* gray-700 */
+        }
+        .table-container::-webkit-scrollbar-thumb {
+            background-color: #6b7280; /* gray-500 */
+            border-radius: 10px;
+            border: 2px solid #374151; /* gray-700 */
+        }
+    </style>
+</head>
+<body class="text-slate-300">
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <header class="py-10 text-center">
+            <h1 class="text-4xl sm:text-5xl font-bold text-white tracking-tight">Finanzieller Vermögensrechner</h1>
+            <p class="mt-4 text-lg text-slate-400">Prognostizieren Sie Ihre finanzielle Zukunft über den gesamten Lebenszyklus.</p>
+        </header>
+
+        <!-- Input Parameters -->
+        <div class="bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-700 mb-8">
+            <h2 class="text-xl font-semibold mb-5 flex items-center text-white">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-3 text-sky-500"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></svg>
+                Ihre Parameter
+            </h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+                <!-- Input fields will be here -->
+                <div>
+                    <label for="initialGrossSalary" class="block text-sm font-medium text-slate-400">Start Brutto (jährl.)</label>
+                    <div class="mt-1 relative rounded-md shadow-sm">
+                        <input type="number" id="initialGrossSalary" class="w-full bg-gray-700 border-gray-600 text-white rounded-md p-2 pr-10 focus:ring-sky-500 focus:border-sky-500" value="40000">
+                        <span class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">€</span>
+                    </div>
+                </div>
+                <div>
+                    <label for="salaryGrowthRate" class="block text-sm font-medium text-slate-400">Gehaltswachstum</label>
+                    <div class="mt-1 relative rounded-md shadow-sm">
+                        <input type="number" id="salaryGrowthRate" class="w-full bg-gray-700 border-gray-600 text-white rounded-md p-2 pr-10 focus:ring-sky-500 focus:border-sky-500" value="3">
+                        <span class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">%</span>
+                    </div>
+                </div>
+                <div>
+                    <label for="monthlyExpenses" class="block text-sm font-medium text-slate-400">Lebenskosten (mtl.)</label>
+                    <div class="mt-1 relative rounded-md shadow-sm">
+                        <input type="number" id="monthlyExpenses" class="w-full bg-gray-700 border-gray-600 text-white rounded-md p-2 pr-10 focus:ring-sky-500 focus:border-sky-500" value="1500">
+                        <span class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">€</span>
+                    </div>
+                </div>
+                <div>
+                    <label for="expensesGrowthRate" class="block text-sm font-medium text-slate-400">Kostensteigerung</label>
+                    <div class="mt-1 relative rounded-md shadow-sm">
+                        <input type="number" id="expensesGrowthRate" class="w-full bg-gray-700 border-gray-600 text-white rounded-md p-2 pr-10 focus:ring-sky-500 focus:border-sky-500" value="2">
+                        <span class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">%</span>
+                    </div>
+                </div>
+                <div>
+                    <label for="savingsRate" class="block text-sm font-medium text-slate-400">Sparrate (v. Rest)</label>
+                    <div class="mt-1 relative rounded-md shadow-sm">
+                        <input type="number" id="savingsRate" class="w-full bg-gray-700 border-gray-600 text-white rounded-md p-2 pr-10 focus:ring-sky-500 focus:border-sky-500" value="80">
+                        <span class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">%</span>
+                    </div>
+                </div>
+                <div>
+                    <label for="initialAssets" class="block text-sm font-medium text-slate-400">Startvermögen</label>
+                    <div class="mt-1 relative rounded-md shadow-sm">
+                        <input type="number" id="initialAssets" class="w-full bg-gray-700 border-gray-600 text-white rounded-md p-2 pr-10 focus:ring-sky-500 focus:border-sky-500" value="60000">
+                        <span class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">€</span>
+                    </div>
+                </div>
+                <div>
+                    <label for="investmentReturnRate" class="block text-sm font-medium text-slate-400">Kapitalmarkt-Rendite</label>
+                    <div class="mt-1 relative rounded-md shadow-sm">
+                        <input type="number" id="investmentReturnRate" class="w-full bg-gray-700 border-gray-600 text-white rounded-md p-2 pr-10 focus:ring-sky-500 focus:border-sky-500" value="6">
+                        <span class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">%</span>
+                    </div>
+                </div>
+                <div>
+                    <label for="inflationRate" class="block text-sm font-medium text-slate-400">Inflationsrate</label>
+                    <div class="mt-1 relative rounded-md shadow-sm">
+                        <input type="number" id="inflationRate" class="w-full bg-gray-700 border-gray-600 text-white rounded-md p-2 pr-10 focus:ring-sky-500 focus:border-sky-500" value="2">
+                         <span class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">%</span>
+                    </div>
+                </div>
+                <div>
+                    <label for="inheritanceAmount" class="block text-sm font-medium text-slate-400">Erbsumme</label>
+                    <div class="mt-1 relative rounded-md shadow-sm">
+                        <input type="number" id="inheritanceAmount" class="w-full bg-gray-700 border-gray-600 text-white rounded-md p-2 pr-10 focus:ring-sky-500 focus:border-sky-500" value="150000">
+                         <span class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">€</span>
+                    </div>
+                </div>
+                <div>
+                    <label for="inheritanceYear" class="block text-sm font-medium text-slate-400">Jahr des Erbes</label>
+                    <div class="mt-1 relative rounded-md shadow-sm">
+                        <input type="number" id="inheritanceYear" class="w-full bg-gray-700 border-gray-600 text-white rounded-md p-2 pr-10 focus:ring-sky-500 focus:border-sky-500" value="2045">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <main>
+            <!-- Chart -->
+            <div class="bg-gray-800 p-4 sm:p-6 rounded-2xl shadow-lg border border-gray-700 mb-8">
+                <h2 class="text-xl font-semibold mb-4 text-white">Vermögensentwicklung über den Lebenszyklus</h2>
+                <div class="chart-container">
+                    <canvas id="wealthChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Disclaimer -->
+            <div class="bg-amber-900/20 border-l-4 border-amber-500 text-amber-300 p-4 rounded-r-lg mb-8" role="alert">
+                <p class="font-bold">Wichtiger Hinweis</p>
+                <p>Dies ist eine vereinfachte Modellrechnung. Annahmen: Renteneintritt mit 70, Lebenskosten in der Rente entsprechen dem letzten Nettogehalt. Keine Steuern auf Kapitalerträge berücksichtigt.</p>
+            </div>
+
+            <!-- Accumulation Table -->
+            <div class="bg-gray-800 rounded-2xl shadow-lg border border-gray-700 overflow-hidden mb-8">
+                <h2 class="text-xl font-semibold p-6 text-white">Ansparphase bis zur Rente</h2>
+                <div class="overflow-x-auto table-container">
+                    <table class="w-full text-left">
+                        <thead class="bg-gray-700/50">
+                            <tr>
+                                <th class="p-4 font-semibold text-slate-300">Jahr</th>
+                                <th class="p-4 font-semibold text-slate-300">Alter</th>
+                                <th class="p-4 font-semibold text-slate-300">Brutto (jährl.)</th>
+                                <th class="p-4 font-semibold text-slate-300">Netto (monatl.)</th>
+                                <th class="p-4 font-semibold text-slate-300">Kosten (monatl.)</th>
+                                <th class="p-4 font-semibold text-slate-300">Übrig (monatl.)</th>
+                                <th class="p-4 font-semibold text-slate-300">Sparbetrag (monatl.)</th>
+                                <th class="p-4 font-semibold text-slate-300">Vermögen (Ende)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="accumulation-table-body" class="divide-y divide-gray-700">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Retirement Table -->
+            <div class="bg-gray-800 rounded-2xl shadow-lg border border-gray-700 overflow-hidden mb-8">
+                <h2 class="text-xl font-semibold p-6 text-white">Entnahmephase in der Rente (ab 70)</h2>
+                <div class="overflow-x-auto table-container">
+                    <table class="w-full text-left">
+                        <thead class="bg-gray-700/50">
+                            <tr>
+                                <th class="p-4 font-semibold text-slate-300">Jahr</th>
+                                <th class="p-4 font-semibold text-slate-300">Alter</th>
+                                <th class="p-4 font-semibold text-slate-300">Lebenskosten (jährl.)</th>
+                                <th class="p-4 font-semibold text-slate-300">Zinserträge</th>
+                                <th class="p-4 font-semibold text-slate-300">Vermögen (Ende)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="retirement-table-body" class="divide-y divide-gray-700">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+
+        <footer class="text-center py-10 text-slate-500 text-sm">
+            <p>Erstellt mit HTML, Tailwind CSS und Chart.js. Berechnungen sind Schätzungen.</p>
+        </footer>
+    </div>
+
+    <script>
+        const inputs = {
+            initialGrossSalary: document.getElementById('initialGrossSalary'),
+            salaryGrowthRate: document.getElementById('salaryGrowthRate'),
+            monthlyExpenses: document.getElementById('monthlyExpenses'),
+            expensesGrowthRate: document.getElementById('expensesGrowthRate'),
+            savingsRate: document.getElementById('savingsRate'),
+            initialAssets: document.getElementById('initialAssets'),
+            investmentReturnRate: document.getElementById('investmentReturnRate'),
+            inflationRate: document.getElementById('inflationRate'),
+            inheritanceAmount: document.getElementById('inheritanceAmount'),
+            inheritanceYear: document.getElementById('inheritanceYear'),
+        };
+
+        const accumulationTableBody = document.getElementById('accumulation-table-body');
+        const retirementTableBody = document.getElementById('retirement-table-body');
+        const chartCtx = document.getElementById('wealthChart').getContext('2d');
+        let wealthChart;
+
+        const formatCurrency = (num) => new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(num);
+
+        function calculateNetSalary(grossSalary) {
+            const healthInsuranceCeiling = 62100;
+            const pensionInsuranceCeiling = 90600;
+            const healthInsuranceRate = 0.073 + 0.0085;
+            const nursingCareInsuranceRate = 0.023;
+            const pensionInsuranceRate = 0.093;
+            const unemploymentInsuranceRate = 0.013;
+            
+            const healthContribution = Math.min(grossSalary, healthInsuranceCeiling) * healthInsuranceRate;
+            const nursingCareContribution = Math.min(grossSalary, healthInsuranceCeiling) * nursingCareInsuranceRate;
+            const pensionContribution = Math.min(grossSalary, pensionInsuranceCeiling) * pensionInsuranceRate;
+            const unemploymentContribution = Math.min(grossSalary, pensionInsuranceCeiling) * unemploymentInsuranceRate;
+            const socialContributions = healthContribution + nursingCareContribution + pensionContribution + unemploymentContribution;
+
+            const taxableIncome = grossSalary - socialContributions - 1264;
+            const basicTaxFreeAllowance = 11604;
+            let incomeTax = 0;
+
+            if (taxableIncome > basicTaxFreeAllowance) {
+                const y = (taxableIncome - basicTaxFreeAllowance) / 10000;
+                if (taxableIncome <= 17005) { incomeTax = (979.18 * y + 1400) * y; } 
+                else if (taxableIncome <= 66760) { const z = (taxableIncome - 17005) / 10000; incomeTax = (192.59 * z + 2397) * z + 975.79; } 
+                else if (taxableIncome <= 277825) { incomeTax = 0.42 * taxableIncome - 10253.81; } 
+                else { incomeTax = 0.45 * taxableIncome - 18588.56; }
+            }
+            
+            const soliThreshold = 18130;
+            let soli = 0;
+            if (incomeTax > soliThreshold) {
+               soli = Math.min(0.055 * incomeTax, 0.119 * (incomeTax - soliThreshold));
+               if (incomeTax > 34332) { soli = 0.055 * incomeTax; }
+            }
+            const totalTax = incomeTax + soli;
+            return { netSalary: grossSalary - socialContributions - totalTax };
+        }
+
+        function runProjection() {
+            let currentAssets = Number(inputs.initialAssets.value);
+            let currentGrossSalary = Number(inputs.initialGrossSalary.value);
+            let currentAnnualExpenses = Number(inputs.monthlyExpenses.value) * 12;
+            const birthYear = 1996;
+            const retirementStartYear = 2065;
+            let lastAnnualNetSalary = 0;
+            
+            const fullData = [];
+            for (let i = 0; i < 71; i++) {
+                const year = new Date().getFullYear() + i;
+                const age = year - birthYear;
+                
+                let grossSalary = 0, netSalary = 0, annualSavings = 0, monthlyNetSalary = 0, monthlyDisposableIncome = 0, monthlySavingsAmount = 0, investmentGains = 0;
+                let retirementWithdrawal = 0;
+
+                investmentGains = currentAssets * (Number(inputs.investmentReturnRate.value) / 100);
+
+                if (year < retirementStartYear) {
+                    if (i > 0) {
+                        currentGrossSalary *= 1 + (Number(inputs.salaryGrowthRate.value) / 100);
+                        currentAnnualExpenses *= 1 + (Number(inputs.expensesGrowthRate.value) / 100);
+                    }
+                    
+                    const result = calculateNetSalary(currentGrossSalary);
+                    grossSalary = currentGrossSalary;
+                    netSalary = result.netSalary;
+                    lastAnnualNetSalary = netSalary;
+
+                    const annualDisposableIncome = netSalary - currentAnnualExpenses;
+                    annualSavings = annualDisposableIncome > 0 ? annualDisposableIncome * (Number(inputs.savingsRate.value) / 100) : 0;
+                    
+                    monthlyNetSalary = netSalary / 12;
+                    const monthlyExpensesValue = currentAnnualExpenses / 12;
+                    monthlyDisposableIncome = monthlyNetSalary - monthlyExpensesValue;
+                    monthlySavingsAmount = monthlyDisposableIncome > 0 ? monthlyDisposableIncome * (Number(inputs.savingsRate.value) / 100) : 0;
+
+                    currentAssets += investmentGains + annualSavings;
+                } else {
+                    retirementWithdrawal = lastAnnualNetSalary;
+                    currentAssets += investmentGains - retirementWithdrawal;
+                }
+
+                if (year === Number(inputs.inheritanceYear.value)) {
+                    currentAssets += Number(inputs.inheritanceAmount.value);
+                }
+                
+                if (currentAssets < 0) currentAssets = 0;
+
+                const inflationFactor = Math.pow(1 + (Number(inputs.inflationRate.value) / 100), i);
+                const realTotalAssets = currentAssets / inflationFactor;
+
+                fullData.push({
+                    year, age,
+                    grossSalary: Math.round(grossSalary),
+                    netSalary: Math.round(netSalary),
+                    monthlyNetSalary: Math.round(monthlyNetSalary),
+                    monthlyExpenses: Math.round(currentAnnualExpenses / 12),
+                    monthlyDisposableIncome: Math.round(monthlyDisposableIncome),
+                    monthlySavingsAmount: Math.round(monthlySavingsAmount),
+                    totalAssets: Math.round(currentAssets),
+                    realTotalAssets: Math.round(realTotalAssets),
+                    retirementWithdrawal: Math.round(retirementWithdrawal),
+                    investmentGains: Math.round(investmentGains),
+                });
+            }
+
+            renderTables(fullData, retirementStartYear);
+            renderChart(fullData);
+        }
+
+        function renderTables(data, retirementStartYear) {
+            accumulationTableBody.innerHTML = '';
+            retirementTableBody.innerHTML = '';
+
+            data.forEach(d => {
+                if (d.year < retirementStartYear) {
+                    const row = document.createElement('tr');
+                    row.className = 'hover:bg-gray-700/50 transition-colors';
+                    if (d.year === Number(inputs.inheritanceYear.value)) {
+                        row.className += ' bg-sky-900/50 hover:bg-sky-800/50';
+                    }
+                    row.innerHTML = `
+                        <td class="p-4 whitespace-nowrap text-slate-400">${d.year}</td>
+                        <td class="p-4 whitespace-nowrap text-slate-300">${d.age}</td>
+                        <td class="p-4 whitespace-nowrap text-slate-300">${formatCurrency(d.grossSalary)}</td>
+                        <td class="p-4 whitespace-nowrap font-semibold text-white">${formatCurrency(d.monthlyNetSalary)}</td>
+                        <td class="p-4 whitespace-nowrap text-red-400">${formatCurrency(d.monthlyExpenses)}</td>
+                        <td class="p-4 whitespace-nowrap text-slate-300">${formatCurrency(d.monthlyDisposableIncome)}</td>
+                        <td class="p-4 whitespace-nowrap text-green-400">${formatCurrency(d.monthlySavingsAmount)}</td>
+                        <td class="p-4 whitespace-nowrap font-bold text-white">${formatCurrency(d.totalAssets)}</td>
+                    `;
+                    accumulationTableBody.appendChild(row);
+                } else if (d.totalAssets > 0) {
+                     const row = document.createElement('tr');
+                     row.className = 'hover:bg-gray-700/50 transition-colors';
+                     row.innerHTML = `
+                        <td class="p-4 whitespace-nowrap text-slate-400">${d.year}</td>
+                        <td class="p-4 whitespace-nowrap text-slate-300">${d.age}</td>
+                        <td class="p-4 whitespace-nowrap text-red-400">${formatCurrency(d.retirementWithdrawal)}</td>
+                        <td class="p-4 whitespace-nowrap text-green-400">${formatCurrency(d.investmentGains)}</td>
+                        <td class="p-4 whitespace-nowrap font-bold text-white">${formatCurrency(d.totalAssets)}</td>
+                    `;
+                    retirementTableBody.appendChild(row);
+                }
+            });
+        }
+        
+        function renderChart(data) {
+            if (wealthChart) {
+                wealthChart.destroy();
+            }
+            wealthChart = new Chart(chartCtx, {
+                type: 'line',
+                data: {
+                    labels: data.map(d => d.year),
+                    datasets: [
+                        {
+                            label: 'Vermögen (nominal)',
+                            data: data.map(d => d.totalAssets),
+                            borderColor: '#0ea5e9', // sky-500
+                            backgroundColor: 'rgba(14, 165, 233, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            borderWidth: 3,
+                        },
+                        {
+                            label: 'Vermögen (kaufkraftbereinigt)',
+                            data: data.map(d => d.realTotalAssets),
+                            borderColor: '#f59e0b', // amber-500
+                            borderDash: [5, 5],
+                            fill: false,
+                            tension: 0.4,
+                            borderWidth: 3,
+                        },
+                        {
+                            label: 'Nettogehalt (jährl.)',
+                            data: data.map(d => d.netSalary),
+                            borderColor: '#a855f7', // purple-500
+                            backgroundColor: 'transparent',
+                            fill: false,
+                            borderWidth: 2,
+                            hidden: true,
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            ticks: {
+                                color: '#94a3b8', // slate-400
+                                callback: function(value, index, values) {
+                                    return new Intl.NumberFormat('de-DE', {
+                                        notation: 'compact',
+                                        compactDisplay: 'short'
+                                    }).format(value);
+                                }
+                            },
+                            grid: {
+                                color: '#334155' // slate-700
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: '#94a3b8' // slate-400
+                            },
+                             grid: {
+                                color: '#334155' // slate-700
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#d1d5db' // gray-300
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: '#1f2937', // gray-800
+                            titleColor: '#f9fafb', // gray-50
+                            bodyColor: '#d1d5db', // gray-300
+                            borderColor: '#374151', // gray-700
+                            borderWidth: 1,
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += formatCurrency(context.parsed.y);
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        Object.values(inputs).forEach(input => {
+            input.addEventListener('input', runProjection);
+        });
+
+        document.addEventListener('DOMContentLoaded', runProjection);
+    </script>
+
+</body>
+</html>

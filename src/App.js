@@ -1,11 +1,11 @@
-import './index.css';
+import React from 'react';
+import Finanzrechner from './components/Finanzrechner';
+import './App.css';
 
 function App() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <h1 className="text-3xl font-bold text-blue-600">
-        Tailwind läuft!
-      </h1>
+    <div className="App">
+      <Finanzrechner />
     </div>
   );
 }
